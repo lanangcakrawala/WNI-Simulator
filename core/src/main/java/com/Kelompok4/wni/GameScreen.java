@@ -13,9 +13,11 @@ public class GameScreen extends ScreenAdapter {
     private final WNISimulatorGame game;
     private final OrthographicCamera camera;
     private final GlyphLayout layout;
+    private final GameController controller;
 
     public GameScreen(WNISimulatorGame game) {
         this.game = game;
+        controller = new GameController();
 
         camera = new OrthographicCamera();
         camera.setToOrtho(
@@ -29,6 +31,7 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
+        controller.update(delta);
 
         Gdx.gl.glClearColor(0.08f, 0.12f, 0.08f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
