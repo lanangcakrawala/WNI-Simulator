@@ -7,13 +7,26 @@ import com.badlogic.gdx.utils.Pool;
 public class FallingObject implements Pool.Poolable {
 
     public enum Type {
-        GOOD,
-        BAD
+        SALARY(100000),
+        BONUS(200000),
+        TAX(-50000),
+        JUDOL(-150000);
+
+        private final int balanceChange;
+
+        Type(int balanceChange) {
+            this.balanceChange = balanceChange;
+        }
+
+        public int getBalanceChange() {
+            return balanceChange;
+        }
     }
 
     private final Rectangle bounds = new Rectangle();
 
     private Type type;
+
     private float speed;
 
     // Menginisialisasi ulang instance yang diperoleh dari pool.
