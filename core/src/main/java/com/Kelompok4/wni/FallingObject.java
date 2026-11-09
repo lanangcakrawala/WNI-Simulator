@@ -7,8 +7,10 @@ import com.badlogic.gdx.utils.Pool;
 public class FallingObject implements Pool.Poolable {
 
     public enum Type {
-        GOOD,
-        BAD
+        FIFTY,
+        HUNDRED,
+        GAMBLE,
+        TAX,
     }
 
     private final Rectangle bounds = new Rectangle();
@@ -16,20 +18,13 @@ public class FallingObject implements Pool.Poolable {
     private Type type;
     private float speed;
 
-    // Menginisialisasi ulang instance yang diperoleh dari pool.
-    public void init(
-        float x,
-        float y,
-        float size,
-        float speed,
-        Type type
-    ) {
+
+    public void init(float x, float y, float size, float speed, Type type) {
         bounds.set(x, y, size, size);
         this.speed = speed;
         this.type = type;
     }
 
-    // Memperbarui posisi objek.
     public void update(float delta) {
         bounds.y -= speed * delta;
     }
@@ -46,7 +41,6 @@ public class FallingObject implements Pool.Poolable {
         return bounds.y + bounds.height < 0;
     }
 
-    // Dipanggil otomatis ketika instance dikembalikan ke pool.
     @Override
     public void reset() {
         bounds.set(0, 0, 0, 0);
