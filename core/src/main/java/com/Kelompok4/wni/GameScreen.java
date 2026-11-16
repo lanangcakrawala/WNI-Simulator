@@ -35,7 +35,13 @@ public class GameScreen extends ScreenAdapter {
         this.game = game;
 
         // Membuat GameController untuk mengatur gameplay
-        controller = new GameController();
+        controller = new GameController(new ObjectFactory());
+
+        // Membuat objek Player dengan ukuran layar saat ini
+        Player player = new Player(Gdx.graphics.getWidth());
+
+        // Menghubungkan Player dengan GameController
+        controller.setPlayer(player);
 
         // Membuat kamera 2D
         camera = new OrthographicCamera();
@@ -56,7 +62,11 @@ public class GameScreen extends ScreenAdapter {
     public void render(float delta) {
 
         // Memperbarui logika permainan setiap frame
-        controller.update(delta);
+        controller.update(
+            delta,
+            Gdx.graphics.getWidth(),
+            Gdx.graphics.getHeight()
+        );
 
         // Mengatur warna background permainan
         Gdx.gl.glClearColor(0.08f, 0.12f, 0.08f, 1);

@@ -12,8 +12,11 @@ public class GameController {
     // Menghitung waktu menuju kemunculan objek berikutnya
     private float spawnTimer;
 
-    // Interval awal kemunculan objek dalam detik
+    // Interval kemunculan objek dalam detik
     private static final float SPAWN_INTERVAL = 1.5f;
+
+    // Menyimpan kondisi permainan saat ini
+    private GameState gameState;
 
     // Menyimpan objek pemain
     private Player player;
@@ -21,7 +24,7 @@ public class GameController {
     // Menyimpan seluruh objek yang sedang aktif
     private final Array<FallingObject> fallingObjects;
 
-    // Menampung objek yang tertangkap sebelum dikembalikan ke pool
+    // Menampung objek yang akan dikembalikan ke Object Pool
     private final Array<FallingObject> objectsToRecycle;
 
     // Mengatur pembuatan dan penggunaan kembali objek
@@ -33,27 +36,40 @@ public class GameController {
     // Mengatur saldo dan skor permainan
     private final ScoreManager scoreManager;
 
-    // Constructor untuk menginisialisasi seluruh komponen
+
+    // Constructor untuk menginisialisasi komponen permainan
     public GameController(ObjectFactory objectFactory) {
 
         elapsedTime = 0f;
         spawnTimer = 0f;
 
+        // Permainan dimulai dalam kondisi PLAYING
+        gameState = GameState.PLAYING;
+
+        // Menghubungkan ObjectFactory
         this.objectFactory = objectFactory;
 
+        // Membuat kumpulan objek aktif dan objek daur ulang
         fallingObjects = new Array<>();
         objectsToRecycle = new Array<>();
 
+        // Membuat pengelola tabrakan dan saldo
         collisionManager = new CollisionManager();
         scoreManager = new ScoreManager();
     }
 
-    // Memperbarui seluruh kondisi permainan setiap frame
+
+    // Memperbarui kondisi permainan setiap frame
     public void update(
         float delta,
         float screenWidth,
         float screenHeight
     ) {
+
+        // Update hanya dilakukan ketika permainan sedang berjalan
+        if (gameState != GameState.PLAYING) {
+            return;
+        }
 
         // Mengabaikan delta yang tidak valid
         if (delta <= 0f) {
@@ -66,21 +82,21 @@ public class GameController {
         // Menghitung waktu menuju spawn berikutnya
         spawnTimer += delta;
 
-        // Membuat objek baru ketika interval spawn tercapai
+        // Membuat objek ketika interval spawn tercapai
         if (spawnTimer >= SPAWN_INTERVAL) {
 
-            // Mengambil objek dari ObjectFactory
+            // Mengambil objek acak dari ObjectFactory
             FallingObject newObject =
                 objectFactory.obtainRandomObject(
                     screenWidth,
                     screenHeight
                 );
 
-            // Memasukkan objek ke daftar objek aktif
+            // Menambahkan objek ke kumpulan objek aktif
             fallingObjects.add(newObject);
 
-            // Mengatur ulang spawn timer
-            spawnTimer = 0f;
+            // Mengurangi timer berdasarkan interval spawn
+            spawnTimer -= SPAWN_INTERVAL;
         }
 
         // Memperbarui posisi pemain
@@ -88,14 +104,16 @@ public class GameController {
             player.update(delta);
         }
 
-        // Memperbarui posisi seluruh objek jatuh
+        // Memperbarui seluruh objek jatuh
+        // Iterasi dari belakang agar aman ketika menghapus objek
         for (int i = fallingObjects.size - 1; i >= 0; i--) {
 
             FallingObject object = fallingObjects.get(i);
 
+            // Memperbarui posisi objek
             object.update(delta);
 
-            // Memeriksa apakah objek sudah keluar dari layar
+            // Memeriksa apakah objek sudah keluar layar
             if (object.isOutOfScreen()) {
 
                 // Menghapus objek dari daftar aktif
@@ -107,7 +125,7 @@ public class GameController {
             }
         }
 
-        // Memeriksa tabrakan jika pemain tersedia
+        // Memeriksa tabrakan jika Player tersedia
         if (player != null) {
 
             collisionManager.checkCollisions(
@@ -122,10 +140,16 @@ public class GameController {
                 objectFactory.freeObject(object);
             }
 
-            // Mengosongkan daftar objek yang sudah dikembalikan
+            // Mengosongkan daftar objek yang sudah didaur ulang
             objectsToRecycle.clear();
         }
+
+        // Memeriksa apakah saldo sudah mencapai nol atau kurang
+        if (scoreManager.isGameOver()) {
+            gameState = GameState.GAME_OVER;
+        }
     }
+
 
     // Menghubungkan objek Player ke GameController
     public void setPlayer(Player player) {
@@ -137,7 +161,7 @@ public class GameController {
         return player;
     }
 
-    // Mengambil daftar objek yang sedang aktif untuk proses render
+    // Mengambil daftar objek aktif untuk proses render
     public Array<FallingObject> getFallingObjects() {
         return fallingObjects;
     }
@@ -157,15 +181,38 @@ public class GameController {
         return scoreManager.getFormattedBalance();
     }
 
-    // Mengambil jumlah objek yang berhasil ditangani
+    // Mengambil jumlah objek yang berhasil ditangkap
     public int getScore() {
         return scoreManager.getScore();
     }
 
-    // Memeriksa apakah saldo sudah mencapai nol atau kurang
-    public boolean isGameOver() {
-        return scoreManager.isGameOver();
+    // Mengambil kondisi permainan
+    public GameState getGameState() {
+        return gameState;
     }
+
+    // Memeriksa apakah permainan sudah berakhir
+    public boolean isGameOver() {
+        return gameState == GameState.GAME_OVER;
+    }
+
+
+    // Menghentikan sementara permainan
+    public void pause() {
+
+        if (gameState == GameState.PLAYING) {
+            gameState = GameState.PAUSED;
+        }
+    }
+
+    // Melanjutkan permainan setelah dijeda
+    public void resume() {
+
+        if (gameState == GameState.PAUSED) {
+            gameState = GameState.PLAYING;
+        }
+    }
+
 
     // Mengatur ulang kondisi permainan
     public void reset() {
@@ -174,20 +221,26 @@ public class GameController {
         for (int i = fallingObjects.size - 1; i >= 0; i--) {
 
             FallingObject object = fallingObjects.removeIndex(i);
+
             objectFactory.freeObject(object);
         }
 
-        // Mengosongkan daftar objek yang akan didaur ulang
+        // Mengosongkan daftar objek daur ulang
         objectsToRecycle.clear();
 
         // Mengatur ulang waktu permainan
         elapsedTime = 0f;
         spawnTimer = 0f;
 
-        // Mengatur ulang saldo dan skor
+        // Mengembalikan saldo dan skor ke nilai awal
         scoreManager.reset();
 
-        // Reset posisi pemain akan ditambahkan
-        // setelah method reset milik Player tersedia
+        // Mengembalikan posisi pemain ke posisi awal
+        if (player != null) {
+            player.reset();
+        }
+
+        // Mengaktifkan kembali permainan
+        gameState = GameState.PLAYING;
     }
 }

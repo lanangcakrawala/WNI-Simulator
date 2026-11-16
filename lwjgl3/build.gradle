@@ -22,10 +22,16 @@ sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
 application.mainClass = 'com.Kelompok4.wni.lwjgl3.Lwjgl3Launcher'
 application.applicationName = appName
 eclipse.project.name = appName + '-lwjgl3'
-java.sourceCompatibility = 8
-java.targetCompatibility = 8
+
+// Mengatur kompatibilitas source code ke Java 17
+java.sourceCompatibility = JavaVersion.VERSION_17
+
+// Mengatur versi target hasil kompilasi ke Java 17
+java.targetCompatibility = JavaVersion.VERSION_17
+
+// Memastikan compiler menghasilkan bytecode yang kompatibel dengan Java 17
 if (JavaVersion.current().isJava9Compatible()) {
-        compileJava.options.release.set(8)
+  compileJava.options.release.set(17)
 }
 
 dependencies {
