@@ -2,6 +2,7 @@
 package com.Kelompok4.wni;
 
 import com.badlogic.gdx.utils.Array;
+import jdk.jfr.internal.consumer.ObjectFactory;
 
 // Mengatur alur utama gameplay dan koordinasi komponen permainan
 public class GameController {
