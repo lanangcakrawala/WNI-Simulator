@@ -6,11 +6,16 @@ import com.badlogic.gdx.utils.Pool;
 
 public class FallingObject implements Pool.Poolable {
 
+    // Menentukan perubahan saldo untuk setiap jenis objek
     public enum Type {
-        SALARY(100000),
-        BONUS(200000),
-        TAX(-50000),
-        JUDOL(-150000);
+
+        // Objek yang menambah saldo
+        SALARY(50000),
+        BONUS(100000),
+
+        // Objek yang mengurangi saldo
+        TAX(-100000),
+        JUDOL(-200000);
 
         private final int balanceChange;
 
@@ -18,6 +23,7 @@ public class FallingObject implements Pool.Poolable {
             this.balanceChange = balanceChange;
         }
 
+        // Mengambil perubahan saldo dari jenis objek
         public int getBalanceChange() {
             return balanceChange;
         }

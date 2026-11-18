@@ -9,7 +9,7 @@ public class Player {
 
     private final Rectangle bounds;
     private final float speed = 450f;
-    private final float screenWidth;
+    private float screenWidth;
 
     public Player(float screenWidth) {
         this.screenWidth = screenWidth;
@@ -37,17 +37,42 @@ public class Player {
 
         bounds.x = MathUtils.clamp(
             bounds.x,
-            0,
-            screenWidth - bounds.width
+            0f,
+            Math.max(0f, screenWidth - bounds.width)
         );
     }
+    // Menyesuaikan batas gerak Player ketika ukuran layar berubah
+    public void resize(float screenWidth) {
 
+        // Mengabaikan ukuran layar yang tidak valid
+        if (screenWidth <= 0f) {
+            return;
+        }
+
+        // Memperbarui lebar layar
+        this.screenWidth = screenWidth;
+
+        // Memastikan Player tetap berada di dalam layar
+        bounds.x = MathUtils.clamp(
+            bounds.x,
+            0f,
+            Math.max(0f, screenWidth - bounds.width)
+        );
+    }
     public Rectangle getBounds() {
         return bounds;
     }
 
+    // Mengembalikan Player ke posisi awal
     public void reset() {
-        bounds.x = (screenWidth / 2f) - (bounds.width / 2f);
+
+        // Menempatkan Player di tengah layar
+        bounds.x = Math.max(
+            0f,
+            (screenWidth - bounds.width) / 2f
+        );
+
+        // Mengembalikan Player ke posisi vertikal awal
         bounds.y = 30f;
     }
 }

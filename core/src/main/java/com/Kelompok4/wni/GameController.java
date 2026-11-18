@@ -2,7 +2,6 @@
 package com.Kelompok4.wni;
 
 import com.badlogic.gdx.utils.Array;
-import jdk.jfr.internal.consumer.ObjectFactory;
 
 // Mengatur alur utama gameplay dan koordinasi komponen permainan
 public class GameController {
@@ -10,11 +9,20 @@ public class GameController {
     // Menyimpan total waktu permainan
     private float elapsedTime;
 
-    // Menghitung waktu menuju kemunculan objek berikutnya
+    // Menghitung waktu menuju spawn berikutnya
     private float spawnTimer;
 
-    // Interval kemunculan objek dalam detik
-    private static final float SPAWN_INTERVAL = 1.5f;
+    // Interval awal kemunculan gelombang objek
+    private static final float BASE_SPAWN_INTERVAL = 1.5f;
+
+    // Interval spawn tercepat
+    private static final float MIN_SPAWN_INTERVAL = 0.7f;
+
+    // Setiap 30 detik tingkat kesulitan meningkat
+    private static final float DIFFICULTY_STEP_SECONDS = 30f;
+
+    // Jumlah objek yang muncul dalam satu gelombang
+    private static final int OBJECTS_PER_WAVE = 3;
 
     // Menyimpan kondisi permainan saat ini
     private GameState gameState;
@@ -80,24 +88,34 @@ public class GameController {
         // Menghitung total waktu permainan
         elapsedTime += delta;
 
+        // Menghitung tingkat kesulitan berdasarkan waktu bermain
+        // Level meningkat setiap 30 detik, maksimal level 4
+        float difficultyLevel = Math.min(
+            elapsedTime / DIFFICULTY_STEP_SECONDS,
+            4f
+        );
+
+        // Menghitung interval spawn berdasarkan tingkat kesulitan
+        float currentSpawnInterval = Math.max(
+            MIN_SPAWN_INTERVAL,
+            BASE_SPAWN_INTERVAL - (difficultyLevel * 0.2f)
+        );
+
         // Menghitung waktu menuju spawn berikutnya
         spawnTimer += delta;
 
-        // Membuat objek ketika interval spawn tercapai
-        if (spawnTimer >= SPAWN_INTERVAL) {
+        // Membuat gelombang objek ketika interval tercapai
+        while (spawnTimer >= currentSpawnInterval) {
 
-            // Mengambil objek acak dari ObjectFactory
-            FallingObject newObject =
-                objectFactory.obtainRandomObject(
-                    screenWidth,
-                    screenHeight
-                );
-
-            // Menambahkan objek ke kumpulan objek aktif
-            fallingObjects.add(newObject);
+            // Membuat tiga objek muncul bersamaan
+            spawnWave(
+                screenWidth,
+                screenHeight,
+                difficultyLevel
+            );
 
             // Mengurangi timer berdasarkan interval spawn
-            spawnTimer -= SPAWN_INTERVAL;
+            spawnTimer -= currentSpawnInterval;
         }
 
         // Memperbarui posisi pemain
@@ -105,28 +123,12 @@ public class GameController {
             player.update(delta);
         }
 
-        // Memperbarui seluruh objek jatuh
-        // Iterasi dari belakang agar aman ketika menghapus objek
-        for (int i = fallingObjects.size - 1; i >= 0; i--) {
-
-            FallingObject object = fallingObjects.get(i);
-
-            // Memperbarui posisi objek
+        // Memperbarui posisi seluruh objek yang sedang aktif
+        for (FallingObject object : fallingObjects) {
             object.update(delta);
-
-            // Memeriksa apakah objek sudah keluar layar
-            if (object.isOutOfScreen()) {
-
-                // Menghapus objek dari daftar aktif
-                FallingObject removed =
-                    fallingObjects.removeIndex(i);
-
-                // Mengembalikan objek ke Object Pool
-                objectFactory.freeObject(removed);
-            }
         }
 
-        // Memeriksa tabrakan jika Player tersedia
+        // Memeriksa tabrakan dan objek yang keluar layar
         if (player != null) {
 
             collisionManager.checkCollisions(
@@ -136,7 +138,7 @@ public class GameController {
                 objectsToRecycle
             );
 
-            // Mengembalikan objek yang tertangkap ke Object Pool
+            // Mengembalikan objek yang sudah tidak digunakan ke Object Pool
             for (FallingObject object : objectsToRecycle) {
                 objectFactory.freeObject(object);
             }
@@ -148,6 +150,35 @@ public class GameController {
         // Memeriksa apakah saldo sudah mencapai nol atau kurang
         if (scoreManager.isGameOver()) {
             gameState = GameState.GAME_OVER;
+        }
+    }
+
+
+    // Membuat beberapa objek muncul secara bersamaan
+    private void spawnWave(
+        float screenWidth,
+        float screenHeight,
+        float difficultyLevel
+    ) {
+
+        // Menentukan jumlah jalur objek
+        int laneCount = OBJECTS_PER_WAVE;
+
+        // Membuat objek pada setiap jalur
+        for (int i = 0; i < laneCount; i++) {
+
+            // Mengambil objek dari ObjectFactory
+            FallingObject newObject =
+                objectFactory.obtainRandomObject(
+                    screenWidth,
+                    screenHeight,
+                    i,
+                    laneCount,
+                    difficultyLevel
+                );
+
+            // Memasukkan objek ke daftar objek aktif
+            fallingObjects.add(newObject);
         }
     }
 
@@ -213,7 +244,6 @@ public class GameController {
             gameState = GameState.PLAYING;
         }
     }
-
 
     // Mengatur ulang kondisi permainan
     public void reset() {

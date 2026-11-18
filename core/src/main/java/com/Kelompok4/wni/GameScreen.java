@@ -10,8 +10,12 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+
 // Import untuk mengatur format angka
 import java.util.Locale;
+
 
 // Mengatur tampilan dan proses gameplay
 public class GameScreen extends ScreenAdapter {
@@ -27,6 +31,12 @@ public class GameScreen extends ScreenAdapter {
 
     // Mengatur logika utama permainan
     private final GameController controller;
+
+    // Menggambar bentuk sementara untuk Player dan FallingObject
+    private final ShapeRenderer shapeRenderer;
+
+    // Menandai apakah ShapeRenderer sudah dibersihkan
+    private boolean disposed = false;
 
     // Constructor untuk menginisialisasi GameScreen
     public GameScreen(WNISimulatorGame game) {
@@ -55,11 +65,36 @@ public class GameScreen extends ScreenAdapter {
 
         // Membuat objek untuk mengatur tata letak teks
         layout = new GlyphLayout();
+
+        // Membuat ShapeRenderer untuk menggambar objek sementara
+        shapeRenderer = new ShapeRenderer();
     }
 
     // Method yang dipanggil berulang kali oleh Game Loop libGDX
     @Override
     public void render(float delta) {
+
+        // Memeriksa apakah pemain menekan tombol P
+        if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+
+            // Jika permainan berjalan, hentikan sementara
+            if (controller.getGameState() == GameState.PLAYING) {
+                controller.pause();
+            }
+
+            // Jika permainan dijeda, lanjutkan kembali
+            else if (controller.getGameState() == GameState.PAUSED) {
+                controller.resume();
+            }
+        }
+
+        // Memeriksa tombol R ketika permainan berakhir
+        if (controller.getGameState() == GameState.GAME_OVER &&
+            Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+
+            // Mengatur ulang seluruh kondisi permainan
+            controller.reset();
+        }
 
         // Memperbarui logika permainan setiap frame
         controller.update(
@@ -77,6 +112,56 @@ public class GameScreen extends ScreenAdapter {
         // Memperbarui kamera
         camera.update();
 
+        // Mengatur proyeksi ShapeRenderer mengikuti kamera
+        shapeRenderer.setProjectionMatrix(camera.combined);
+
+        // Memulai proses menggambar bentuk
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+        // Menggambar Player dengan warna biru
+        if (controller.getPlayer() != null) {
+            shapeRenderer.setColor(Color.CYAN);
+
+            shapeRenderer.rect(
+                controller.getPlayer().getBounds().x,
+                controller.getPlayer().getBounds().y,
+                controller.getPlayer().getBounds().width,
+                controller.getPlayer().getBounds().height
+            );
+        }
+
+        // Menggambar seluruh objek yang sedang aktif
+        for (FallingObject object : controller.getFallingObjects()) {
+
+            switch (object.getType()) {
+                case SALARY:
+                    shapeRenderer.setColor(Color.GREEN);
+                    break;
+
+                case BONUS:
+                    shapeRenderer.setColor(Color.YELLOW);
+                    break;
+
+                case TAX:
+                    shapeRenderer.setColor(Color.RED);
+                    break;
+
+                case JUDOL:
+                    shapeRenderer.setColor(Color.MAGENTA);
+                    break;
+            }
+
+            shapeRenderer.rect(
+                object.getBounds().x,
+                object.getBounds().y,
+                object.getBounds().width,
+                object.getBounds().height
+            );
+        }
+
+        // Mengakhiri proses menggambar bentuk
+        shapeRenderer.end();
+
         // Mengatur perspektif SpriteBatch berdasarkan kamera
         game.getBatch().setProjectionMatrix(camera.combined);
 
@@ -85,6 +170,21 @@ public class GameScreen extends ScreenAdapter {
 
         // Mengambil tinggi layar
         float height = Gdx.graphics.getHeight();
+
+
+        // Menampilkan informasi sesuai kondisi permainan
+        if (controller.getGameState() == GameState.PAUSED) {
+
+            // Memberikan informasi bahwa permainan sedang dijeda
+            drawCentered("PAUSED - Tekan P untuk melanjutkan",
+                height * 0.10f, 1.2f);
+
+        } else if (controller.getGameState() == GameState.GAME_OVER) {
+
+            // Memberikan informasi bahwa permainan telah berakhir
+            drawCentered("GAME OVER - Tekan R untuk mengulang",
+                height * 0.10f, 1.2f);
+        }
 
         // Menampilkan judul gameplay
         drawCentered("GAMEPLAY", height * 0.70f, 2.0f);
@@ -95,6 +195,7 @@ public class GameScreen extends ScreenAdapter {
             height * 0.53f,
             1.5f
         );
+
 
         // Mengambil dan menampilkan waktu permainan
         String timeText = String.format(
@@ -163,5 +264,27 @@ public class GameScreen extends ScreenAdapter {
 
         // Memperbarui kamera
         camera.update();
+
+        // Menyesuaikan batas gerak Player dengan lebar layar baru
+        if (controller.getPlayer() != null) {
+            controller.getPlayer().resize(width);
+        }
+    }
+
+    // Membersihkan resource ketika GameScreen tidak digunakan
+    @Override
+    public void hide() {
+        dispose();
+    }
+
+    // Membersihkan ShapeRenderer agar tidak menyebabkan memory leak
+    @Override
+    public void dispose() {
+
+        // Memastikan resource hanya dibersihkan satu kali
+        if (!disposed) {
+            shapeRenderer.dispose();
+            disposed = true;
+        }
     }
 }
