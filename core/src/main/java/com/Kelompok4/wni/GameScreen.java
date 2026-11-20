@@ -1,290 +1,457 @@
 
 package com.Kelompok4.wni;
 
-// Import library bawaan libGDX
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-
-// Import untuk mengatur format angka
 import java.util.Locale;
 
-
-// Mengatur tampilan dan proses gameplay
 public class GameScreen extends ScreenAdapter {
 
-    // Menyimpan referensi ke class utama game
+    private static final float PLAYER_DRAW_WIDTH = 80f;
+    private static final float PLAYER_DRAW_HEIGHT = 140f;
+
+    private static final float OBJECT_DRAW_WIDTH = 88f;
+    private static final float OBJECT_DRAW_HEIGHT = 40f;
+
     private final WNISimulatorGame game;
-
-    // Mengatur sudut pandang kamera 2D
     private final OrthographicCamera camera;
-
-    // Menghitung ukuran teks untuk menentukan posisi tengah
     private final GlyphLayout layout;
-
-    // Mengatur logika utama permainan
     private final GameController controller;
 
-    // Menggambar bentuk sementara untuk Player dan FallingObject
-    private final ShapeRenderer shapeRenderer;
+    private Texture backgroundTexture;
+    private Texture standardCharacterTexture;
 
-    // Menandai apakah ShapeRenderer sudah dibersihkan
-    private boolean disposed = false;
+    private Texture salaryTexture;
+    private Texture bonusTexture;
+    private Texture taxTexture;
+    private Texture judolTexture;
 
-    // Constructor untuk menginisialisasi GameScreen
+    private boolean disposed;
+
     public GameScreen(WNISimulatorGame game) {
 
-        // Menyimpan referensi game utama
         this.game = game;
 
-        // Membuat GameController untuk mengatur gameplay
         controller = new GameController(new ObjectFactory());
 
-        // Membuat objek Player dengan ukuran layar saat ini
-        Player player = new Player(Gdx.graphics.getWidth());
+        controller.setPlayer(
+            new Player(Gdx.graphics.getWidth())
+        );
 
-        // Menghubungkan Player dengan GameController
-        controller.setPlayer(player);
-
-        // Membuat kamera 2D
         camera = new OrthographicCamera();
 
-        // Menyesuaikan kamera dengan ukuran layar
         camera.setToOrtho(
             false,
             Gdx.graphics.getWidth(),
             Gdx.graphics.getHeight()
         );
 
-        // Membuat objek untuk mengatur tata letak teks
         layout = new GlyphLayout();
 
-        // Membuat ShapeRenderer untuk menggambar objek sementara
-        shapeRenderer = new ShapeRenderer();
+        // Memuat seluruh asset yang digunakan gameplay.
+        backgroundTexture =
+            loadTexture("wni-simulator_background.png");
+
+        standardCharacterTexture =
+            loadTexture("karakter_standar.png");
+
+        salaryTexture =
+            loadTexture("objek_50K.png");
+
+        bonusTexture =
+            loadTexture("objek_100K.png");
+
+        taxTexture =
+            loadTexture("objek_tax.png");
+
+        judolTexture =
+            loadTexture("objek_judol.png");
     }
 
-    // Method yang dipanggil berulang kali oleh Game Loop libGDX
+    private Texture loadTexture(String fileName) {
+
+        Texture texture = new Texture(
+            Gdx.files.internal(fileName)
+        );
+
+        texture.setFilter(
+            Texture.TextureFilter.Linear,
+            Texture.TextureFilter.Linear
+        );
+
+        return texture;
+    }
+
     @Override
     public void render(float delta) {
 
-        // Memeriksa apakah pemain menekan tombol P
-        if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
-
-            // Jika permainan berjalan, hentikan sementara
-            if (controller.getGameState() == GameState.PLAYING) {
-                controller.pause();
-            }
-
-            // Jika permainan dijeda, lanjutkan kembali
-            else if (controller.getGameState() == GameState.PAUSED) {
-                controller.resume();
-            }
+        if (handleInput()) {
+            return;
         }
 
-        // Memeriksa tombol R ketika permainan berakhir
-        if (controller.getGameState() == GameState.GAME_OVER &&
-            Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-
-            // Mengatur ulang seluruh kondisi permainan
-            controller.reset();
-        }
-
-        // Memperbarui logika permainan setiap frame
+        // Memperbarui logika permainan.
         controller.update(
             delta,
             Gdx.graphics.getWidth(),
             Gdx.graphics.getHeight()
         );
 
-        // Mengatur warna background permainan
-        Gdx.gl.glClearColor(0.08f, 0.12f, 0.08f, 1);
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
 
-        // Membersihkan tampilan frame sebelumnya
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Memperbarui kamera
         camera.update();
 
-        // Mengatur proyeksi ShapeRenderer mengikuti kamera
-        shapeRenderer.setProjectionMatrix(camera.combined);
+        SpriteBatch batch = game.getBatch();
 
-        // Memulai proses menggambar bentuk
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        batch.setProjectionMatrix(camera.combined);
 
-        // Menggambar Player dengan warna biru
-        if (controller.getPlayer() != null) {
-            shapeRenderer.setColor(Color.CYAN);
+        batch.begin();
 
-            shapeRenderer.rect(
-                controller.getPlayer().getBounds().x,
-                controller.getPlayer().getBounds().y,
-                controller.getPlayer().getBounds().width,
-                controller.getPlayer().getBounds().height
-            );
+        drawBackground(batch);
+
+        drawFallingObjects(batch);
+
+        drawPlayer(batch);
+
+        drawHud(batch);
+
+        batch.end();
+    }
+
+    private boolean handleInput() {
+
+        // Pause dan Resume.
+        if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+
+            if (controller.getGameState() == GameState.PLAYING) {
+
+                controller.pause();
+
+            } else if (
+                controller.getGameState() == GameState.PAUSED
+            ) {
+
+                controller.resume();
+            }
         }
 
-        // Menggambar seluruh objek yang sedang aktif
-        for (FallingObject object : controller.getFallingObjects()) {
+        // Restart ketika Game Over.
+        if (
+            controller.getGameState() == GameState.GAME_OVER
+                && Gdx.input.isKeyJustPressed(Input.Keys.R)
+        ) {
 
-            switch (object.getType()) {
-                case SALARY:
-                    shapeRenderer.setColor(Color.GREEN);
-                    break;
+            controller.reset();
+        }
 
-                case BONUS:
-                    shapeRenderer.setColor(Color.YELLOW);
-                    break;
+        // Kembali ke Main Menu.
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
 
-                case TAX:
-                    shapeRenderer.setColor(Color.RED);
-                    break;
+            game.setScreen(new MainMenuScreen(game));
 
-                case JUDOL:
-                    shapeRenderer.setColor(Color.MAGENTA);
-                    break;
+            return true;
+        }
+
+        return false;
+    }
+
+    private void drawBackground(SpriteBatch batch) {
+
+        batch.draw(
+            backgroundTexture,
+            0f,
+            0f,
+            Gdx.graphics.getWidth(),
+            Gdx.graphics.getHeight()
+        );
+    }
+
+    private void drawPlayer(SpriteBatch batch) {
+
+        Player player = controller.getPlayer();
+
+        if (player == null) {
+            return;
+        }
+
+        float x =
+            player.getBounds().x
+                + player.getBounds().width / 2f
+                - PLAYER_DRAW_WIDTH / 2f;
+
+        float y = player.getBounds().y - 5f;
+
+        batch.draw(
+            standardCharacterTexture,
+            x,
+            y,
+            PLAYER_DRAW_WIDTH,
+            PLAYER_DRAW_HEIGHT
+        );
+    }
+
+    private void drawFallingObjects(SpriteBatch batch) {
+
+        for (
+            FallingObject object :
+            controller.getFallingObjects()
+        ) {
+
+            Texture texture =
+                getObjectTexture(object.getType());
+
+            if (texture == null) {
+                continue;
             }
 
-            shapeRenderer.rect(
-                object.getBounds().x,
-                object.getBounds().y,
-                object.getBounds().width,
-                object.getBounds().height
+            float x =
+                object.getBounds().x
+                    + object.getBounds().width / 2f
+                    - OBJECT_DRAW_WIDTH / 2f;
+
+            float y =
+                object.getBounds().y
+                    + object.getBounds().height / 2f
+                    - OBJECT_DRAW_HEIGHT / 2f;
+
+            batch.draw(
+                texture,
+                x,
+                y,
+                OBJECT_DRAW_WIDTH,
+                OBJECT_DRAW_HEIGHT
             );
         }
+    }
 
-        // Mengakhiri proses menggambar bentuk
-        shapeRenderer.end();
+    private Texture getObjectTexture(FallingObject.Type type) {
 
-        // Mengatur perspektif SpriteBatch berdasarkan kamera
-        game.getBatch().setProjectionMatrix(camera.combined);
-
-        // Memulai proses menggambar objek
-        game.getBatch().begin();
-
-        // Mengambil tinggi layar
-        float height = Gdx.graphics.getHeight();
-
-
-        // Menampilkan informasi sesuai kondisi permainan
-        if (controller.getGameState() == GameState.PAUSED) {
-
-            // Memberikan informasi bahwa permainan sedang dijeda
-            drawCentered("PAUSED - Tekan P untuk melanjutkan",
-                height * 0.10f, 1.2f);
-
-        } else if (controller.getGameState() == GameState.GAME_OVER) {
-
-            // Memberikan informasi bahwa permainan telah berakhir
-            drawCentered("GAME OVER - Tekan R untuk mengulang",
-                height * 0.10f, 1.2f);
+        if (type == null) {
+            return null;
         }
 
-        // Menampilkan judul gameplay
-        drawCentered("GAMEPLAY", height * 0.70f, 2.0f);
+        switch (type) {
 
-        // Menampilkan saldo aktual dari GameController
-        drawCentered(
+            case SALARY:
+                return salaryTexture;
+
+            case BONUS:
+                return bonusTexture;
+
+            case TAX:
+                return taxTexture;
+
+            case JUDOL:
+                return judolTexture;
+
+            default:
+                return null;
+        }
+    }
+
+    private void drawHud(SpriteBatch batch) {
+
+        float width = Gdx.graphics.getWidth();
+
+        float height = Gdx.graphics.getHeight();
+
+        // Informasi saldo.
+        drawText(
+            batch,
             "Saldo: " + controller.getFormattedBalance(),
-            height * 0.53f,
-            1.5f
+            20f,
+            height - 25f,
+            1.15f
         );
 
+        // Informasi skor.
+        drawText(
+            batch,
+            "Objek tertangkap: " + controller.getScore(),
+            20f,
+            height - 55f,
+            1f
+        );
 
-        // Mengambil dan menampilkan waktu permainan
-        String timeText = String.format(
+        // Informasi waktu.
+        String time = String.format(
             Locale.US,
             "%.1f",
             controller.getElapsedTime()
         );
 
-        drawCentered(
-            "Waktu bermain: " + timeText + " detik",
-            height * 0.38f,
-            1.0f
+        drawText(
+            batch,
+            "Waktu: " + time + " detik",
+            width - 190f,
+            height - 25f,
+            1f
         );
 
-        // Menampilkan instruksi kembali ke menu
         drawCentered(
-            "Tekan ESC untuk kembali ke menu",
-            height * 0.20f,
-            1.0f
+            batch,
+            "P: Pause   |   ESC: Menu",
+            height - 55f,
+            0.9f
         );
 
-        // Mengakhiri proses menggambar
-        game.getBatch().end();
+        // Tampilan Pause.
+        if (controller.getGameState() == GameState.PAUSED) {
 
-        // Memeriksa apakah pemain menekan tombol ESC
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            drawCentered(
+                batch,
+                "PAUSED",
+                height * 0.55f,
+                2.2f
+            );
 
-            // Berpindah kembali ke Main Menu
-            game.setScreen(new MainMenuScreen(game));
+            drawCentered(
+                batch,
+                "Tekan P untuk melanjutkan",
+                height * 0.48f,
+                1.1f
+            );
+        }
+
+        // Tampilan Game Over.
+        else if (
+            controller.getGameState() == GameState.GAME_OVER
+        ) {
+
+            drawCentered(
+                batch,
+                "GAME OVER",
+                height * 0.55f,
+                2.2f
+            );
+
+            drawCentered(
+                batch,
+                "Tekan R untuk bermain kembali",
+                height * 0.48f,
+                1.1f
+            );
+
+            drawCentered(
+                batch,
+                "Saldo akhir: " + controller.getFormattedBalance(),
+                height * 0.41f,
+                1f
+            );
         }
     }
 
-    // Method untuk menggambar teks di posisi horizontal tengah layar
-    private void drawCentered(String text, float y, float scale) {
+    private void drawText(
+        SpriteBatch batch,
+        String text,
+        float x,
+        float y,
+        float scale
+    ) {
 
-        // Mengambil font yang dikelola oleh game utama
         BitmapFont font = game.getFont();
 
-        // Mengatur ukuran teks
         font.getData().setScale(scale);
 
-        // Menghitung ukuran teks
-        layout.setText(font, text);
+        font.setColor(
+            com.badlogic.gdx.graphics.Color.WHITE
+        );
 
-        // Menghitung posisi horizontal agar teks berada di tengah
-        float x = (Gdx.graphics.getWidth() - layout.width) / 2f;
+        font.draw(batch, text, x, y);
 
-        // Menggambar teks ke layar
-        font.draw(game.getBatch(), text, x, y);
-
-        // Mengembalikan ukuran font ke ukuran normal
         font.getData().setScale(1f);
     }
 
-    // Method yang dipanggil ketika ukuran jendela berubah
+    private void drawCentered(
+        SpriteBatch batch,
+        String text,
+        float y,
+        float scale
+    ) {
+
+        BitmapFont font = game.getFont();
+
+        font.getData().setScale(scale);
+
+        font.setColor(
+            com.badlogic.gdx.graphics.Color.WHITE
+        );
+
+        layout.setText(font, text);
+
+        float x =
+            (Gdx.graphics.getWidth() - layout.width) / 2f;
+
+        font.draw(batch, text, x, y);
+
+        font.getData().setScale(1f);
+    }
+
     @Override
     public void resize(int width, int height) {
 
-        // Menghindari ukuran layar yang tidak valid
         if (width <= 0 || height <= 0) {
             return;
         }
 
-        // Menyesuaikan kamera dengan ukuran layar baru
         camera.setToOrtho(false, width, height);
 
-        // Memperbarui kamera
         camera.update();
 
-        // Menyesuaikan batas gerak Player dengan lebar layar baru
         if (controller.getPlayer() != null) {
+
             controller.getPlayer().resize(width);
         }
     }
 
-    // Membersihkan resource ketika GameScreen tidak digunakan
     @Override
     public void hide() {
+
         dispose();
     }
 
-    // Membersihkan ShapeRenderer agar tidak menyebabkan memory leak
     @Override
     public void dispose() {
 
-        // Memastikan resource hanya dibersihkan satu kali
-        if (!disposed) {
-            shapeRenderer.dispose();
-            disposed = true;
+        if (disposed) {
+            return;
         }
+
+        if (backgroundTexture != null) {
+            backgroundTexture.dispose();
+        }
+
+        if (standardCharacterTexture != null) {
+            standardCharacterTexture.dispose();
+        }
+
+        if (salaryTexture != null) {
+            salaryTexture.dispose();
+        }
+
+        if (bonusTexture != null) {
+            bonusTexture.dispose();
+        }
+
+        if (taxTexture != null) {
+            taxTexture.dispose();
+        }
+
+        if (judolTexture != null) {
+            judolTexture.dispose();
+        }
+
+        disposed = true;
     }
 }
+
+
