@@ -39,6 +39,9 @@ public class GameScreen extends ScreenAdapter {
     // Menyimpan username pemain yang sedang bermain.
     private final String username;
 
+    // Menandai apakah permainan dihentikan oleh lifecycle aplikasi.
+    private boolean pausedByLifecycle = false;
+
     private Texture backgroundTexture;
     private Texture standardCharacterTexture;
 
@@ -488,8 +491,25 @@ public class GameScreen extends ScreenAdapter {
         // Menyimpan progress sebelum aplikasi masuk background.
         saveProgress();
 
-        // Menghentikan sementara permainan.
+        // Mencatat apakah permainan sedang berjalan.
+        pausedByLifecycle =
+            controller.getGameState() == GameState.PLAYING;
+
+        // Menghentikan permainan sementara.
         controller.pause();
+    }
+
+    @Override
+    public void resume() {
+
+        // Melanjutkan permainan hanya jika sebelumnya
+        // dihentikan oleh lifecycle aplikasi.
+        if (pausedByLifecycle) {
+
+            controller.resume();
+
+            pausedByLifecycle = false;
+        }
     }
 
     @Override
