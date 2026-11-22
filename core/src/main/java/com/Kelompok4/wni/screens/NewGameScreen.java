@@ -386,7 +386,8 @@ public class NewGameScreen extends ScreenAdapter {
 
         Gdx.input.setOnscreenKeyboardVisible(false);
 
-        game.setScreen(new GameScreen(game));
+        // Memulai permainan baru menggunakan username yang sudah didaftarkan.
+        game.setScreen(new GameScreen(game, username));
     }
 
     private void returnToMainMenu() {

@@ -11,11 +11,11 @@ public class FallingObject implements Pool.Poolable {
 
         // Objek yang menambah saldo
         SALARY(50000),
-        BONUS(50000),
+        BONUS(100000),
 
         // Objek yang mengurangi saldo
-        TAX(-100000),
-        JUDOL(-200000);
+        TAX(-300000),
+        JUDOL(-1000000);
 
         private final int balanceChange;
 

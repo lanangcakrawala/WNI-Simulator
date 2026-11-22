@@ -106,23 +106,27 @@ public class GameController {
             BASE_SPAWN_INTERVAL - (difficultyLevel * 0.2f)
         );
 
-        // Menghitung waktu menuju spawn berikutnya
-        spawnTimer += delta;
+        // Menambahkan waktu frame ke timer spawn.
+        // Timer dibatasi agar tidak menumpuk ketika terjadi frame drop.
+        spawnTimer = Math.min(
+            spawnTimer + delta,
+            currentSpawnInterval
+        );
 
-        // Membuat gelombang objek ketika interval tercapai
-        while (spawnTimer >= currentSpawnInterval) {
+        // Membuat maksimal satu gelombang objek dalam satu frame.
+        if (spawnTimer >= currentSpawnInterval) {
 
-            // Membuat tiga objek muncul bersamaan
+            // Membuat tiga objek muncul bersamaan.
             spawnWave(
                 screenWidth,
                 screenHeight,
                 difficultyLevel
             );
 
-            // Mengurangi timer berdasarkan interval spawn
-            spawnTimer -= currentSpawnInterval;
+            // Mengatur ulang timer agar tidak terjadi spawn beruntun.
+            spawnTimer = 0f;
         }
-
+        
         // Memperbarui posisi pemain
         if (player != null) {
             player.update(delta);
@@ -208,6 +212,24 @@ public class GameController {
         return elapsedTime;
     }
 
+    // Mengembalikan waktu permainan dari data yang tersimpan.
+    public void restoreElapsedTime(float savedElapsedTime) {
+
+        // Memastikan waktu yang diterima valid.
+        if (Float.isNaN(savedElapsedTime)
+            || Float.isInfinite(savedElapsedTime)
+            || savedElapsedTime < 0f) {
+
+            return;
+        }
+
+        // Mengembalikan total waktu permainan.
+        elapsedTime = savedElapsedTime;
+
+        // Mengatur ulang timer spawn.
+        spawnTimer = 0f;
+    }
+
     // Mengambil saldo pemain
     public int getBalance() {
         return scoreManager.getBalance();
@@ -222,6 +244,27 @@ public class GameController {
     public int getScore() {
         return scoreManager.getScore();
     }
+
+    // Mengembalikan saldo dan skor pemain.
+    public void restoreBalanceAndScore(
+        int savedBalance,
+        int savedScore
+    ) {
+
+        // Mengembalikan data melalui ScoreManager.
+        scoreManager.restoreProgress(
+            savedBalance,
+            savedScore
+        );
+
+        // Memastikan status permainan sesuai saldo.
+        if (scoreManager.isGameOver()) {
+            gameState = GameState.GAME_OVER;
+        } else {
+            gameState = GameState.PLAYING;
+        }
+    }
+
 
     // Mengambil kondisi permainan
     public GameState getGameState() {

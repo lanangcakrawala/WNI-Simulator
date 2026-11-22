@@ -16,6 +16,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.Kelompok4.wni.managers.PlayerDataManager;
 
 import java.util.Locale;
 
@@ -32,6 +33,12 @@ public class GameScreen extends ScreenAdapter {
     private final GlyphLayout layout;
     private final GameController controller;
 
+    // Mengelola penyimpanan data pemain.
+    private final PlayerDataManager playerDataManager;
+
+    // Menyimpan username pemain yang sedang bermain.
+    private final String username;
+
     private Texture backgroundTexture;
     private Texture standardCharacterTexture;
 
@@ -42,16 +49,31 @@ public class GameScreen extends ScreenAdapter {
 
     private boolean disposed;
 
-    public GameScreen(WNISimulatorGame game) {
+
+    public GameScreen(WNISimulatorGame game, String username) {
 
         this.game = game;
+        this.username = username;
 
+        // Membuat pengelola data pemain.
+        playerDataManager = new PlayerDataManager();
+
+        // Membuat GameController.
         controller = new GameController(new ObjectFactory());
 
+        // Mengambil waktu permainan yang pernah disimpan.
+        float savedElapsedTime =
+            playerDataManager.getElapsedTime(username);
+
+        // Mengembalikan waktu permainan sebelumnya.
+        controller.restoreElapsedTime(savedElapsedTime);
+
+        // Membuat Player.
         controller.setPlayer(
             new Player(Gdx.graphics.getWidth())
         );
 
+        // Mengatur kamera.
         camera = new OrthographicCamera();
 
         camera.setToOrtho(
@@ -62,7 +84,7 @@ public class GameScreen extends ScreenAdapter {
 
         layout = new GlyphLayout();
 
-        // Memuat seluruh asset yang digunakan gameplay.
+        // Memuat seluruh asset gameplay.
         backgroundTexture =
             loadTexture("wni-simulator_background.png");
 
@@ -81,6 +103,7 @@ public class GameScreen extends ScreenAdapter {
         judolTexture =
             loadTexture("objek_judol.png");
     }
+
 
     private Texture loadTexture(String fileName) {
 
@@ -133,6 +156,45 @@ public class GameScreen extends ScreenAdapter {
         batch.end();
     }
 
+
+    // Menyimpan progress permainan pemain.
+    private void saveProgress() {
+
+        // Memastikan username tersedia.
+        if (username == null || username.trim().isEmpty()) {
+            return;
+        }
+
+        // Jika permainan sudah Game Over,
+        // hapus waktu sesi agar Continue memulai dari awal.
+        if (controller.getGameState() == GameState.GAME_OVER) {
+
+            playerDataManager.saveElapsedTime(username, 0f);
+
+            Gdx.app.log(
+                "GameScreen",
+                "Game Over. Progress waktu direset."
+            );
+
+            return;
+        }
+
+        // Jika permainan belum berakhir, simpan waktu terakhir.
+        boolean saved = playerDataManager.saveElapsedTime(
+            username,
+            controller.getElapsedTime()
+        );
+
+        // Menampilkan pesan jika penyimpanan gagal.
+        if (!saved) {
+            Gdx.app.error(
+                "GameScreen",
+                "Gagal menyimpan waktu permainan."
+            );
+        }
+    }
+
+
     private boolean handleInput() {
 
         // Pause dan Resume.
@@ -160,8 +222,13 @@ public class GameScreen extends ScreenAdapter {
         }
 
         // Kembali ke Main Menu.
+        // Menyimpan progress sebelum kembali ke Main Menu.
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
 
+            // Menyimpan waktu permainan.
+            saveProgress();
+
+            // Kembali ke Main Menu.
             game.setScreen(new MainMenuScreen(game));
 
             return true;
@@ -417,6 +484,17 @@ public class GameScreen extends ScreenAdapter {
 
             controller.getPlayer().resize(width);
         }
+    }
+
+    // Menghentikan gameplay ketika aplikasi masuk ke background.
+    @Override
+    public void pause() {
+
+        // Menyimpan progress sebelum aplikasi masuk background.
+        saveProgress();
+
+        // Menghentikan sementara permainan.
+        controller.pause();
     }
 
     @Override

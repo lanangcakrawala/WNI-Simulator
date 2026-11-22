@@ -250,12 +250,80 @@ public class PlayerDataManager {
         );
     }
 
+
+    /**
+     * Menghapus pemain berdasarkan username.
+     * Data pemain setelahnya akan digeser satu slot
+     * agar tidak ada slot kosong dalam daftar.
+     * @param username username pemain yang akan dihapus.
+     * @return true jika berhasil dihapus.
+     **/
+    public boolean deletePlayer(String username) {
+
+        // Memastikan username valid.
+        if (username == null || username.trim().isEmpty()) {
+            return false;
+        }
+
+        // Mencari posisi pemain.
+        int playerIndex = findPlayerIndex(username);
+
+        // Jika pemain tidak ditemukan, batalkan.
+        if (playerIndex == -1) {
+            return false;
+        }
+
+        // Mengambil jumlah pemain saat ini.
+        int playerCount = getPlayerCount();
+
+        // Menggeser data pemain setelahnya ke slot sebelumnya.
+        for (int i = playerIndex; i < playerCount - 1; i++) {
+
+            String nextUsername = preferences.getString(
+                KEY_USERNAME + (i + 1),
+                ""
+            );
+
+            float nextElapsedTime = preferences.getFloat(
+                KEY_ELAPSED_TIME + (i + 1),
+                0f
+            );
+
+            // Memindahkan username.
+            preferences.putString(
+                KEY_USERNAME + i,
+                nextUsername
+            );
+
+            // Memindahkan waktu permainan.
+            preferences.putFloat(
+                KEY_ELAPSED_TIME + i,
+                nextElapsedTime
+            );
+        }
+
+        // Menghapus data pada slot terakhir.
+        preferences.remove(KEY_USERNAME + (playerCount - 1));
+        preferences.remove(KEY_ELAPSED_TIME + (playerCount - 1));
+
+        // Mengurangi jumlah pemain.
+        preferences.putInteger(
+            KEY_PLAYER_COUNT,
+            playerCount - 1
+        );
+
+        // Menyimpan perubahan.
+        preferences.flush();
+
+        return true;
+    }
+
+
     /**
      * Mencari posisi pemain berdasarkan username.
-     *
      * @param username username pemain.
      * @return indeks pemain, atau -1 jika tidak ditemukan.
-     */
+     **/
     private int findPlayerIndex(String username) {
 
         if (username == null) {

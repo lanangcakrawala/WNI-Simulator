@@ -204,42 +204,47 @@ public class ContinueScreen extends ScreenAdapter {
             return;
         }
 
+
         for (int i = 0; i < usernames.size; i++) {
 
-            float playX = slotX[i]
-                + slotWidth - playWidth - 15f;
-
-            float playY = slotY[i]
-                + (slotHeight - playHeight) / 2f;
-
-            if (contains(
-                x, y,
-                playX, playY,
-                playWidth, playHeight
-            )) {
-
-                selectPlayer(usernames.get(i));
-                return;
-            }
-            // Menghitung posisi tombol Delete
+            // Menghitung posisi tombol Delete sesuai posisi visual.
             float deleteX = slotX[i]
                 + slotWidth - deleteWidth - 15f;
 
             float deleteY = slotY[i]
                 + (slotHeight - deleteHeight) / 2f;
 
-            // Memeriksa apakah tombol Delete ditekan
+            // Menghitung posisi tombol Play di sebelah kiri Delete.
+            float playX = deleteX - playWidth - 10f;
+
+            float playY = slotY[i]
+                + (slotHeight - playHeight) / 2f;
+
+            // Memeriksa apakah tombol Delete ditekan.
             if (contains(
                 x, y,
                 deleteX, deleteY,
                 deleteWidth, deleteHeight
             )) {
 
-                // Meminta konfirmasi sebelum menghapus pemain
+                // Menampilkan dialog konfirmasi penghapusan.
                 requestDelete(usernames.get(i));
                 return;
             }
+
+            // Memeriksa apakah tombol Play ditekan.
+            if (contains(
+                x, y,
+                playX, playY,
+                playWidth, playHeight
+            )) {
+
+                // Memulai permainan dengan pemain yang dipilih.
+                selectPlayer(usernames.get(i));
+                return;
+            }
         }
+
     }
 
     /**
@@ -257,7 +262,8 @@ public class ContinueScreen extends ScreenAdapter {
          * Integrasi pemuatan progress berdasarkan username
          * dilakukan pada tahap integrasi GameScreen.
          */
-        game.setScreen(new GameScreen(game));
+        // Melanjutkan permainan berdasarkan username yang dipilih.
+        game.setScreen(new GameScreen(game, username));
     }
     // Menampilkan dialog konfirmasi penghapusan pemain
     private void requestDelete(String username) {

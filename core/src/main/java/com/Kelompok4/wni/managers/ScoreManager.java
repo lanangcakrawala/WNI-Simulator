@@ -28,6 +28,21 @@ public class ScoreManager {
         return score;
     }
 
+    /**
+     * Mengembalikan saldo dan skor dari data yang tersimpan.
+     * @param savedBalance saldo terakhir pemain.
+     * @param savedScore jumlah objek yang berhasil ditangkap.
+     */
+    public void restoreProgress(int savedBalance, int savedScore) {
+
+        // Mengembalikan saldo yang tersimpan.
+        balance = Math.max(0, savedBalance);
+
+        // Mengembalikan skor yang tersimpan.
+        score = Math.max(0, savedScore);
+    }
+
+
     public boolean isGameOver() {
         return balance <= 0;
     }
