@@ -85,10 +85,13 @@ public class GameController {
             return;
         }
 
-        // Mengabaikan delta yang tidak valid
+        // Mengabaikan delta yang tidak valid.
         if (delta <= 0f) {
             return;
         }
+        // Membatasi delta maksimal sebesar 0,05 detik.
+        // Mencegah objek bergerak terlalu jauh ketika terjadi lag.
+        delta = Math.min(delta, 0.05f);
 
         // Menghitung total waktu permainan
         elapsedTime += delta;
@@ -126,7 +129,7 @@ public class GameController {
             // Mengatur ulang timer agar tidak terjadi spawn beruntun.
             spawnTimer = 0f;
         }
-        
+
         // Memperbarui posisi pemain
         if (player != null) {
             player.update(delta);
