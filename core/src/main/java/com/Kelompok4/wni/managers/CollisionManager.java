@@ -1,5 +1,7 @@
-package com.Kelompok4.wni;
+package com.Kelompok4.wni.managers;
 
+import com.Kelompok4.wni.entities.FallingObject;
+import com.Kelompok4.wni.entities.Player;
 import com.badlogic.gdx.utils.Array;
 
 public class CollisionManager {

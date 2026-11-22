@@ -1,5 +1,6 @@
 package com.Kelompok4.wni;
 
+import com.Kelompok4.wni.screens.MainMenuScreen;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;

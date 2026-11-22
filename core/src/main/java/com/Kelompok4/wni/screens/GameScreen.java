@@ -1,6 +1,12 @@
 
-package com.Kelompok4.wni;
+package com.Kelompok4.wni.screens;
 
+import com.Kelompok4.wni.*;
+import com.Kelompok4.wni.entities.FallingObject;
+import com.Kelompok4.wni.entities.Player;
+import com.Kelompok4.wni.factory.ObjectFactory;
+import com.Kelompok4.wni.game.GameController;
+import com.Kelompok4.wni.game.GameState;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;

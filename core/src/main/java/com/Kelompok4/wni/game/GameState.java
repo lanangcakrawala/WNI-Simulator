@@ -1,4 +1,4 @@
-package com.Kelompok4.wni;
+package com.Kelompok4.wni.game;
 
 public enum GameState {
     MENU,

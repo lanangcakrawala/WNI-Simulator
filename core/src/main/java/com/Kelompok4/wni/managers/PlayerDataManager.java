@@ -1,5 +1,5 @@
 
-package com.Kelompok4.wni;
+package com.Kelompok4.wni.managers;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;

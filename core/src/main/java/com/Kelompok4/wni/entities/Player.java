@@ -1,4 +1,4 @@
-package com.Kelompok4.wni;
+package com.Kelompok4.wni.entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;

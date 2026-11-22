@@ -1,5 +1,5 @@
 
-package com.Kelompok4.wni;
+package com.Kelompok4.wni.entities;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Pool;
@@ -11,7 +11,7 @@ public class FallingObject implements Pool.Poolable {
 
         // Objek yang menambah saldo
         SALARY(50000),
-        BONUS(100000),
+        BONUS(50000),
 
         // Objek yang mengurangi saldo
         TAX(-100000),

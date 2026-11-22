@@ -1,6 +1,7 @@
 
-package com.Kelompok4.wni;
+package com.Kelompok4.wni.factory;
 
+import com.Kelompok4.wni.entities.FallingObject;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Pool;
 

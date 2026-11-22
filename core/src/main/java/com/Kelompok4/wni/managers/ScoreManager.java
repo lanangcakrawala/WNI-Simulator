@@ -1,4 +1,6 @@
-package com.Kelompok4.wni;
+package com.Kelompok4.wni.managers;
+
+import com.Kelompok4.wni.entities.FallingObject;
 
 import java.text.NumberFormat;
 import java.util.Locale;

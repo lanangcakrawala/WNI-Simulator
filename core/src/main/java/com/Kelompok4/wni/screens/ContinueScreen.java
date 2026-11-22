@@ -1,6 +1,8 @@
 
-package com.Kelompok4.wni;
+package com.Kelompok4.wni.screens;
 
+import com.Kelompok4.wni.managers.PlayerDataManager;
+import com.Kelompok4.wni.WNISimulatorGame;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;

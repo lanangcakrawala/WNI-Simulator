@@ -1,6 +1,11 @@
 
-package com.Kelompok4.wni;
+package com.Kelompok4.wni.game;
 
+import com.Kelompok4.wni.entities.FallingObject;
+import com.Kelompok4.wni.entities.Player;
+import com.Kelompok4.wni.factory.ObjectFactory;
+import com.Kelompok4.wni.managers.CollisionManager;
+import com.Kelompok4.wni.managers.ScoreManager;
 import com.badlogic.gdx.utils.Array;
 
 // Mengatur alur utama gameplay dan koordinasi komponen permainan

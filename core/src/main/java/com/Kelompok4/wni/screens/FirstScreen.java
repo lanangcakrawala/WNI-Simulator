@@ -1,4 +1,4 @@
-package com.Kelompok4.wni;
+package com.Kelompok4.wni.screens;
 
 import com.badlogic.gdx.Screen;
 
