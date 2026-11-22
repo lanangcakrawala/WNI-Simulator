@@ -38,6 +38,53 @@ public class PlayerDataManager {
     // Objek untuk mengakses penyimpanan lokal.
     private final Preferences preferences;
 
+    // Tambahkan konstanta key di PlayerDataManager:
+    private static final String KEY_BALANCE = "player_balance_";
+    private static final String KEY_SCORE = "player_score_";
+    private static final int DEFAULT_BALANCE = 500000;
+    private static final int DEFAULT_SCORE = 0;
+
+    public boolean saveBalanceAndScore(String username, int balance, int score) {
+        if (username == null || username.trim().isEmpty()) {
+            return false;
+        }
+
+        int playerIndex = findPlayerIndex(username);
+        if (playerIndex == -1) {
+            return false;
+        }
+
+        preferences.putInteger(KEY_BALANCE + playerIndex, balance);
+        preferences.putInteger(KEY_SCORE + playerIndex, score);
+        preferences.flush();
+        return true;
+    }
+
+    public int getBalance(String username) {
+        if (username == null) {
+            return DEFAULT_BALANCE;
+        }
+
+        int playerIndex = findPlayerIndex(username);
+        if (playerIndex == -1) {
+            return DEFAULT_BALANCE;
+        }
+
+        return preferences.getInteger(KEY_BALANCE + playerIndex, DEFAULT_BALANCE);
+    }
+
+    public int getScore(String username) {
+        if (username == null) {
+            return DEFAULT_SCORE;
+        }
+
+        int playerIndex = findPlayerIndex(username);
+        if (playerIndex == -1) {
+            return DEFAULT_SCORE;
+        }
+
+        return preferences.getInteger(KEY_SCORE + playerIndex, DEFAULT_SCORE);
+    }
     /**
      * Constructor PlayerDataManager.
      */
@@ -106,6 +153,11 @@ public class PlayerDataManager {
 
         // Menyimpan perubahan secara permanen.
         preferences.flush();
+
+        // Saat registerUsername(...), set nilai awal:
+        preferences.putInteger(KEY_BALANCE + playerCount, DEFAULT_BALANCE);
+        preferences.putInteger(KEY_SCORE + playerCount, DEFAULT_SCORE);
+
 
         return true;
     }

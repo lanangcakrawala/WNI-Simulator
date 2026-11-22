@@ -68,6 +68,10 @@ public class GameScreen extends ScreenAdapter {
         // Mengembalikan waktu permainan sebelumnya.
         controller.restoreElapsedTime(savedElapsedTime);
 
+        int savedBalance = playerDataManager.getBalance(username);
+        int savedScore = playerDataManager.getScore(username);
+        controller.restoreBalanceAndScore(savedBalance, savedScore);
+
         // Membuat Player.
         controller.setPlayer(
             new Player(Gdx.graphics.getWidth())
@@ -159,38 +163,29 @@ public class GameScreen extends ScreenAdapter {
 
     // Menyimpan progress permainan pemain.
     private void saveProgress() {
-
-        // Memastikan username tersedia.
         if (username == null || username.trim().isEmpty()) {
             return;
         }
 
-        // Jika permainan sudah Game Over,
-        // hapus waktu sesi agar Continue memulai dari awal.
         if (controller.getGameState() == GameState.GAME_OVER) {
-
             playerDataManager.saveElapsedTime(username, 0f);
-
-            Gdx.app.log(
-                "GameScreen",
-                "Game Over. Progress waktu direset."
-            );
-
+            playerDataManager.saveBalanceAndScore(username, 500000, 0);
+            Gdx.app.log("GameScreen", "Game Over. Progress waktu, saldo, dan skor direset.");
             return;
         }
 
-        // Jika permainan belum berakhir, simpan waktu terakhir.
-        boolean saved = playerDataManager.saveElapsedTime(
+        boolean savedTime = playerDataManager.saveElapsedTime(
             username,
             controller.getElapsedTime()
         );
+        boolean savedStats = playerDataManager.saveBalanceAndScore(
+            username,
+            controller.getBalance(),
+            controller.getScore()
+        );
 
-        // Menampilkan pesan jika penyimpanan gagal.
-        if (!saved) {
-            Gdx.app.error(
-                "GameScreen",
-                "Gagal menyimpan waktu permainan."
-            );
+        if (!savedTime || !savedStats) {
+            Gdx.app.error("GameScreen", "Gagal menyimpan progress permainan.");
         }
     }
 
