@@ -49,6 +49,8 @@ public class ContinueScreen extends ScreenAdapter {
     private float playWidth;
     private float playHeight;
 
+    private boolean disposed = false;
+
     // Mengatur ukuran tombol Delete
     private float deleteWidth;
     private float deleteHeight;
@@ -866,12 +868,23 @@ public class ContinueScreen extends ScreenAdapter {
     @Override
     public void hide() {
 
+        // Melepaskan InputProcessor.
         Gdx.input.setInputProcessor(null);
+
+        // Membersihkan resource Screen.
+        dispose();
     }
 
     @Override
     public void dispose() {
 
+        // Mencegah resource dibuang lebih dari sekali.
+        if (disposed) {
+            return;
+        }
+
         shapeRenderer.dispose();
+
+        disposed = true;
     }
 }

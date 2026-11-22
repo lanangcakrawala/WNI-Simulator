@@ -62,6 +62,8 @@ public class NewGameScreen extends ScreenAdapter {
     private float startWidth;
     private float startHeight;
 
+    private boolean disposed = false;
+
     private float backX;
     private float backY;
     private float backWidth;
@@ -372,6 +374,7 @@ public class NewGameScreen extends ScreenAdapter {
         );
     }
 
+
     private void startGame() {
 
         if (!usernameSaved) {
@@ -384,18 +387,29 @@ public class NewGameScreen extends ScreenAdapter {
             return;
         }
 
+        // Menutup keyboard virtual.
         Gdx.input.setOnscreenKeyboardVisible(false);
 
-        // Memulai permainan baru menggunakan username yang sudah didaftarkan.
+        // Melepaskan InputProcessor milik NewGameScreen.
+        Gdx.input.setInputProcessor(null);
+
+        // Memulai permainan menggunakan username.
         game.setScreen(new GameScreen(game, username));
     }
 
+
     private void returnToMainMenu() {
 
+        // Menutup keyboard virtual.
         Gdx.input.setOnscreenKeyboardVisible(false);
 
+        // Melepaskan InputProcessor milik NewGameScreen.
+        Gdx.input.setInputProcessor(null);
+
+        // Kembali ke Main Menu.
         game.setScreen(new MainMenuScreen(game));
     }
+
 
     private void resetConfirmation() {
 
@@ -703,17 +717,30 @@ public class NewGameScreen extends ScreenAdapter {
         calculateLayout(width, height);
     }
 
+
     @Override
     public void hide() {
 
+        // Menutup keyboard virtual.
         Gdx.input.setOnscreenKeyboardVisible(false);
 
+        // Melepaskan InputProcessor.
         Gdx.input.setInputProcessor(null);
+
+        // Membersihkan resource Screen.
+        dispose();
     }
 
     @Override
     public void dispose() {
 
+        // Mencegah resource dibuang lebih dari sekali.
+        if (disposed) {
+            return;
+        }
+
         shapeRenderer.dispose();
+
+        disposed = true;
     }
 }
