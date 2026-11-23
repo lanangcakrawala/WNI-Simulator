@@ -24,8 +24,8 @@ import java.util.Locale;
 
 public class GameScreen extends ScreenAdapter {
 
-    private static final float PLAYER_DRAW_WIDTH = 80f;
-    private static final float PLAYER_DRAW_HEIGHT = 140f;
+    private static final float PLAYER_DRAW_WIDTH = 640f;
+    private static final float PLAYER_DRAW_HEIGHT = 1120f;
 
     private static final float OBJECT_DRAW_WIDTH = 88f;
     private static final float OBJECT_DRAW_HEIGHT = 40f;
