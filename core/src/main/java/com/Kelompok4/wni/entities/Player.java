@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.Color;
 
 public class Player {
 
@@ -14,11 +16,11 @@ public class Player {
     public Player(float screenWidth) {
         this.screenWidth = screenWidth;
         float width = 60f;
-        float height = 30f;
+        float height = 40f;
 
         bounds = new Rectangle(
             (screenWidth / 2f) - (width / 2f),
-            30f,
+            70f,
             width,
             height
         );
@@ -74,5 +76,15 @@ public class Player {
 
         // Mengembalikan Player ke posisi vertikal awal
         bounds.y = 30f;
+    }
+
+    public void renderBounds(ShapeRenderer shapeRenderer) {
+        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.rect(
+            bounds.x,
+            bounds.y,
+            bounds.width,
+            bounds.height
+        );
     }
 }

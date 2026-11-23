@@ -17,6 +17,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.Kelompok4.wni.managers.PlayerDataManager;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.Color;
 
 import java.util.Locale;
 
@@ -32,6 +34,8 @@ public class GameScreen extends ScreenAdapter {
     private final OrthographicCamera camera;
     private final GlyphLayout layout;
     private final GameController controller;
+
+    private ShapeRenderer shapeRenderer;
 
     // Mengelola penyimpanan data pemain.
     private final PlayerDataManager playerDataManager;
@@ -50,6 +54,8 @@ public class GameScreen extends ScreenAdapter {
     private Texture taxTexture;
     private Texture judolTexture;
 
+    private boolean showHitboxes = true;
+
     private boolean disposed;
 
 
@@ -57,6 +63,8 @@ public class GameScreen extends ScreenAdapter {
 
         this.game = game;
         this.username = username;
+
+        shapeRenderer = new ShapeRenderer();
 
         // Membuat pengelola data pemain.
         playerDataManager = new PlayerDataManager();
@@ -161,6 +169,10 @@ public class GameScreen extends ScreenAdapter {
         drawHud(batch);
 
         batch.end();
+
+        if (showHitboxes) {
+            drawHitboxes();
+        }
     }
 
 
@@ -232,6 +244,10 @@ public class GameScreen extends ScreenAdapter {
             return true;
         }
 
+        if (Gdx.input.isKeyJustPressed(Input.Keys.B)) {
+            showHitboxes = !showHitboxes;
+        }
+
         return false;
     }
 
@@ -259,7 +275,7 @@ public class GameScreen extends ScreenAdapter {
                 + player.getBounds().width / 2f
                 - PLAYER_DRAW_WIDTH / 2f;
 
-        float y = player.getBounds().y - 5f;
+        float y = player.getBounds().y - 45f;
 
         batch.draw(
             standardCharacterTexture,
@@ -549,7 +565,46 @@ public class GameScreen extends ScreenAdapter {
             judolTexture.dispose();
         }
 
+        if (shapeRenderer != null) {
+            shapeRenderer.dispose();
+        }
         disposed = true;
+    }
+
+    private void drawHitboxes() {
+
+        shapeRenderer.setProjectionMatrix(camera.combined);
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+        // Hitbox Player (Merah)
+        shapeRenderer.setColor(Color.RED);
+
+        Player player = controller.getPlayer();
+
+        if (player != null) {
+            shapeRenderer.rect(
+                player.getBounds().x,
+                player.getBounds().y,
+                player.getBounds().width,
+                player.getBounds().height
+            );
+        }
+
+        // Hitbox FallingObject (Hijau)
+        shapeRenderer.setColor(Color.GREEN);
+
+        for (FallingObject object : controller.getFallingObjects()) {
+
+            shapeRenderer.rect(
+                object.getBounds().x,
+                object.getBounds().y,
+                object.getBounds().width,
+                object.getBounds().height
+            );
+        }
+
+        shapeRenderer.end();
     }
 }
 
