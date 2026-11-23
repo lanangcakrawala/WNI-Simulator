@@ -34,77 +34,58 @@ public class ObjectFactory {
     }
 
     // Membuat objek dengan jenis dan kecepatan berdasarkan tingkat kesulitan
+
     public FallingObject obtainRandomObject(
         float screenWidth,
         float screenHeight,
-        int laneIndex,
-        int laneCount,
         float difficultyLevel
     ) {
 
-        // Membatasi tingkat kesulitan dari level 0 sampai 4
-        difficultyLevel = MathUtils.clamp(difficultyLevel, 0f, 4f);
+        // Membatasi tingkat kesulitan dari level 0 sampai 4.
+        difficultyLevel = MathUtils.clamp(
+            difficultyLevel, 0f, 4f
+        );
 
-        // Memastikan jumlah jalur minimal satu
-        laneCount = Math.max(1, laneCount);
-
-        // Mengambil objek dari Object Pool
+        // Mengambil objek dari Object Pool.
         FallingObject object = objectPool.obtain();
 
-        // Menghitung lebar setiap jalur
-        float laneWidth = screenWidth / laneCount;
-
-        // Memastikan indeks jalur valid
-        laneIndex = MathUtils.clamp(laneIndex, 0, laneCount - 1);
-
-        // Menentukan posisi objek di tengah jalurnya
-        float x = laneIndex * laneWidth
-            + (laneWidth - OBJECT_SIZE) / 2f;
-
-        // Memastikan objek tidak keluar dari layar
+        // Menghitung posisi X secara acak.
         float maxX = Math.max(0f, screenWidth - OBJECT_SIZE);
-        x = MathUtils.clamp(x, 0f, maxX);
 
-        // Menghitung peluang setiap jenis objek
+        float x = MathUtils.random(0f, maxX);
+
+        // Menghitung peluang setiap jenis objek.
         float salaryChance = 35f - (6.25f * difficultyLevel);
         float bonusChance = 35f - (6.25f * difficultyLevel);
         float taxChance = 15f + (5f * difficultyLevel);
 
-        // Menghasilkan angka acak antara 0 sampai kurang dari 100
+        // Menghasilkan angka acak antara 0 sampai kurang dari 100.
         float randomChance = MathUtils.random() * 100f;
 
-        // Menentukan jenis objek berdasarkan peluang kemunculannya
+        // Menentukan jenis objek.
         FallingObject.Type type;
 
         if (randomChance < salaryChance) {
-
-            // Objek Salary
             type = FallingObject.Type.SALARY;
 
         } else if (randomChance < salaryChance + bonusChance) {
-
-            // Objek Bonus
             type = FallingObject.Type.BONUS;
 
         } else if (randomChance < salaryChance + bonusChance + taxChance) {
-
-            // Objek Tax
             type = FallingObject.Type.TAX;
 
         } else {
-
-            // Objek Judol
             type = FallingObject.Type.JUDOL;
         }
 
-        // Meningkatkan kecepatan berdasarkan tingkat kesulitan
+        // Meningkatkan kecepatan berdasarkan tingkat kesulitan.
         float speedMultiplier = 1f + (difficultyLevel * 0.15f);
 
-        // Menentukan kecepatan dasar secara acak
+        // Menentukan kecepatan secara acak.
         float speed = MathUtils.random(MIN_SPEED, MAX_SPEED)
             * speedMultiplier;
 
-        // Menginisialisasi objek sebelum digunakan
+        // Menginisialisasi objek.
         object.init(
             x,
             screenHeight,
@@ -113,7 +94,6 @@ public class ObjectFactory {
             type
         );
 
-        // Mengembalikan objek yang sudah selesai diinisialisasi
         return object;
     }
 

@@ -167,32 +167,29 @@ public class GameController {
 
 
     // Membuat beberapa objek muncul secara bersamaan
+
     private void spawnWave(
         float screenWidth,
         float screenHeight,
         float difficultyLevel
     ) {
 
-        // Menentukan jumlah jalur objek
-        int laneCount = OBJECTS_PER_WAVE;
+        // Membuat tiga objek dengan posisi X yang acak.
+        for (int i = 0; i < OBJECTS_PER_WAVE; i++) {
 
-        // Membuat objek pada setiap jalur
-        for (int i = 0; i < laneCount; i++) {
-
-            // Mengambil objek dari ObjectFactory
+            // Mengambil objek dari ObjectFactory.
             FallingObject newObject =
                 objectFactory.obtainRandomObject(
                     screenWidth,
                     screenHeight,
-                    i,
-                    laneCount,
                     difficultyLevel
                 );
 
-            // Memasukkan objek ke daftar objek aktif
+            // Memasukkan objek ke daftar objek aktif.
             fallingObjects.add(newObject);
         }
     }
+
 
 
     // Menghubungkan objek Player ke GameController
