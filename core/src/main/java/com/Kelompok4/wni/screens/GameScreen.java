@@ -24,11 +24,11 @@ import java.util.Locale;
 
 public class GameScreen extends ScreenAdapter {
 
-    private static final float PLAYER_DRAW_WIDTH = 640f;
-    private static final float PLAYER_DRAW_HEIGHT = 1120f;
+    private static final float PLAYER_DRAW_WIDTH = 150f;
+    private static final float PLAYER_DRAW_HEIGHT = 300f;
 
-    private static final float OBJECT_DRAW_WIDTH = 88f;
-    private static final float OBJECT_DRAW_HEIGHT = 40f;
+    private static final float OBJECT_DRAW_WIDTH = 95f;
+    private static final float OBJECT_DRAW_HEIGHT = 55f;
 
     private final WNISimulatorGame game;
     private final OrthographicCamera camera;
