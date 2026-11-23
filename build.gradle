@@ -25,10 +25,16 @@ allprojects {
   }
 }
 
+
 configure(subprojects) {
+  // Mengaktifkan plugin Java untuk seluruh subproject
   apply plugin: 'java-library'
-  java.sourceCompatibility = 8
-  java.targetCompatibility = 8
+
+  // Mengatur kompatibilitas source code ke Java 17
+  java.sourceCompatibility = JavaVersion.VERSION_17
+
+  // Mengatur target hasil kompilasi ke Java 17
+  java.targetCompatibility = JavaVersion.VERSION_17
 
   // From https://lyze.dev/2021/04/29/libGDX-Internal-Assets-List/
   // The article can be helpful when using assets.txt in your project.
