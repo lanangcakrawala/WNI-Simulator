@@ -7,6 +7,8 @@ import java.util.Locale;
 
 public class ScoreManager {
 
+    public static final int DEFAULT_INITIAL_BALANCE = 500000;
+
     private int balance;
     private int score;
 
@@ -17,7 +19,7 @@ public class ScoreManager {
     public void applyObject(FallingObject.Type type) {
 
         balance += type.getBalanceChange();
-        score++;
+        score = Math.max(0, score + 1);
     }
 
     public int getBalance() {
@@ -55,7 +57,7 @@ public class ScoreManager {
     }
 
     public void reset() {
-        balance = 500000;
+        balance = DEFAULT_INITIAL_BALANCE;;
         score = 0;
     }
 }

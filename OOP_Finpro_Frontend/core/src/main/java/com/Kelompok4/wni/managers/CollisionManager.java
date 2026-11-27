@@ -12,33 +12,48 @@ public class CollisionManager {
         ScoreManager scoreManager,
         Array<FallingObject> objectsToRecycle
     ) {
+        if (objects == null) {
+            return;
+        }
+
         // Iterasi dari belakang ke depan (aman untuk penghapusan elemen Array libGDX)
         for (int i = objects.size - 1; i >= 0; i--) {
             FallingObject object = objects.get(i);
+            if (object == null) {
+                objects.removeIndex(i);
+                continue;
+            }
 
             // 1. Cek jika Player berhasil menangkap objek
-            if (player.getBounds().overlaps(object.getBounds())) {
-                // Update saldo dan skor via ScoreManager
-                scoreManager.applyObject(object.getType());
+            if (isColliding(player, object)) {
+                if (scoreManager != null && object.getType() != null) {
+                    scoreManager.applyObject(object.getType());
+                }
 
-                // Masukkan ke list recycle (untuk dikembalikan ke Pool nantinya)
                 if (objectsToRecycle != null) {
                     objectsToRecycle.add(object);
                 }
 
-                // Hapus dari array aktif
                 objects.removeIndex(i);
             }
             // 2. Cek jika objek jatuh melewati batas bawah layar (keluar layar)
             else if (object.isOutOfScreen()) {
-                // Masukkan ke list recycle
                 if (objectsToRecycle != null) {
                     objectsToRecycle.add(object);
                 }
 
-                // Hapus dari array aktif
                 objects.removeIndex(i);
             }
         }
+    }
+
+    public boolean isColliding(Player player, FallingObject object) {
+        if (player == null || object == null) {
+            return false;
+        }
+        if (player.getBounds() == null || object.getBounds() == null) {
+            return false;
+        }
+        return player.getBounds().overlaps(object.getBounds());
     }
 }
